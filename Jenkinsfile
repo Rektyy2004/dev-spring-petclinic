@@ -42,16 +42,18 @@ pipeline {
         
         stage('Deploy to Production') {
             steps {
-                echo 'Jenkins is deploying the container...'
+                echo 'Jenkins is deploying the container with metrics enabled...'
                 script {
                     try {
                         bat 'docker rm -f automated-petclinic'
                     } catch (Exception e) {
                         echo 'No previous container found. Proceeding with deployment...'
                     }
-                    bat 'docker run -d --name automated-petclinic -p 8082:8080 spring-petclinic:automated'
+                    // Added the -e flag to expose the Prometheus metrics securely!
+                    bat 'docker run -d --name automated-petclinic -p 8082:8080 -e MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=prometheus spring-petclinic:automated'
                 }
             }
         }
+
     }
 }
