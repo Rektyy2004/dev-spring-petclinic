@@ -11,8 +11,9 @@ pipeline {
         
         stage('Build & Test') {
             steps {
-                echo 'Compiling application and running unit tests...'
-                bat 'mvnw.cmd clean test'
+                echo 'Running unit tests (skipping DB integration tests for CI environment)...'
+                // The -Dtest command tells Maven to ignore the Postgres and MySQL tests
+                bat 'mvnw.cmd clean test -Dtest=!PostgresIntegrationTests,!MySqlIntegrationTests'
             }
         }
         
@@ -23,8 +24,6 @@ pipeline {
                 archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
-        
-        // --- ADVANCED CD STAGES BELOW ---
         
         stage('Build Docker Image') {
             steps {
@@ -37,13 +36,11 @@ pipeline {
             steps {
                 echo 'Jenkins is deploying the container...'
                 script {
-                    // This try-catch safely removes old containers before deploying the new one
                     try {
                         bat 'docker rm -f automated-petclinic'
                     } catch (Exception e) {
                         echo 'No previous container found. Proceeding with deployment...'
                     }
-                    // Run the new container on port 8082
                     bat 'docker run -d --name automated-petclinic -p 8082:8080 spring-petclinic:automated'
                 }
             }
