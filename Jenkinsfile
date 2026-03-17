@@ -12,8 +12,15 @@ pipeline {
         stage('Build & Test') {
             steps {
                 echo 'Running unit tests (skipping DB integration tests for CI environment)...'
-                // The -Dtest command tells Maven to ignore the Postgres and MySQL tests
                 bat 'mvnw.cmd clean test -Dtest=!PostgresIntegrationTests,!MySqlIntegrationTests'
+            }
+        }
+        
+        // --- ADVANCED CONTINUOUS INSPECTION STAGE ---
+        stage('Code Quality Analysis') {
+            steps {
+                echo 'Sending code to SonarQube for vulnerability scanning...'
+                bat 'mvnw.cmd clean verify sonar:sonar -Dsonar.projectKey=petclinic -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_613e7e7044cb300aaaa7c092573b7eb211f2a784'
             }
         }
         
