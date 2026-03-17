@@ -15,15 +15,16 @@ pipeline {
                 bat 'mvnw.cmd clean test -Dtest=!PostgresIntegrationTests,!MySqlIntegrationTests'
             }
         }
-        
+
         // --- ADVANCED CONTINUOUS INSPECTION STAGE ---
         stage('Code Quality Analysis') {
             steps {
                 echo 'Sending code to SonarQube for vulnerability scanning...'
-                bat 'mvnw.cmd clean verify sonar:sonar -Dsonar.projectKey=petclinic -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_613e7e7044cb300aaaa7c092573b7eb211f2a784'
+                // Using the absolute strongest command to block tests from running twice
+                bat 'mvnw.cmd clean verify sonar:sonar -Dmaven.test.skip=true -Dsonar.projectKey=petclinic -Dsonar.host.url=http://localhost:9000 -Dsonar.token=squ_613e7e7044cb300aaaa7c092573b7eb211f2a784'
             }
         }
-        
+
         stage('Package Artifact') {
             steps {
                 echo 'Packaging application into JAR...'
